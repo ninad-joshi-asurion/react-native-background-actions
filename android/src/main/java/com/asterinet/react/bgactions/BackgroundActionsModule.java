@@ -13,6 +13,7 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+import android.os.Build;
 
 @SuppressWarnings("WeakerAccess")
 public class BackgroundActionsModule extends ReactContextBaseJavaModule {
@@ -46,7 +47,11 @@ public class BackgroundActionsModule extends ReactContextBaseJavaModule {
             final BackgroundTaskOptions bgOptions = new BackgroundTaskOptions(reactContext, options);
             currentServiceIntent.putExtras(bgOptions.getExtras());
             // Start the task
-            reactContext.startService(currentServiceIntent);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                reactContext.startForegroundService(currentServiceIntent);
+            } else {
+                reactContext.startService(currentServiceIntent);
+            }
             promise.resolve(null);
         } catch (Exception e) {
             promise.reject(e);
