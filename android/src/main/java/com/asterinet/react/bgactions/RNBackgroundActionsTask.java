@@ -54,7 +54,7 @@ final public class RNBackgroundActionsTask extends HeadlessJsTaskService {
                 .setSmallIcon(iconInt)
                 .setContentIntent(contentIntent)
                 .setOngoing(true)
-                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setColor(color);
 
         final Bundle progressBarBundle = bgOptions.getProgressBar();
