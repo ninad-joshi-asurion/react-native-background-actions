@@ -36,16 +36,24 @@ final public class RNBackgroundActionsTask extends HeadlessJsTaskService {
         Intent notificationIntent;
         if (linkingURI != null) {
             notificationIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(linkingURI));
+            // ✅ SECURITY FIX: Make intent explicit to prevent hijacking
+            notificationIntent.setPackage(context.getPackageName());
         } else {
             //as RN works on single activity architecture - we don't need to find current activity on behalf of react context
             notificationIntent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+            // ✅ SECURITY FIX: Make intent explicit to prevent hijacking
+            notificationIntent.setPackage(context.getPackageName());
         }
         final PendingIntent contentIntent;
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            contentIntent = PendingIntent.getActivity(context,0, notificationIntent, PendingIntent.FLAG_MUTABLE | PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        // ✅ SECURITY FIX: Removed dangerous UPSIDE_DOWN_CAKE condition and always use secure flags
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // ✅ Android 12+ - Always use FLAG_IMMUTABLE (SECURE)
+            contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // ✅ Android 6+ - Use FLAG_IMMUTABLE for security
             contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         } else {
+            // ✅ Android < 6 - Explicit intent provides security (FLAG_IMMUTABLE not available)
             contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         }
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
